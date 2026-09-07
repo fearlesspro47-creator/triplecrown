@@ -1,0 +1,94 @@
+{
+  "trained_at": "2026-07-01T18:24:10.692732+00:00",
+  "n_fit": 113861,
+  "n_calib": 54626,
+  "n_valid": 54464,
+  "hr_base_rate_fit": 0.10260756536478689,
+  "chosen_calibration": "sigmoid",
+  "features": [
+    "b_pa_std",
+    "b_hr_per_pa_std",
+    "b_k_rate_std",
+    "b_bb_rate_std",
+    "b_iso_std",
+    "b_barrel_rate_40",
+    "b_hardhit_rate_40",
+    "b_mean_ev_40",
+    "b_mean_la_40",
+    "b_xwoba_con_40",
+    "b_recent_hr_15",
+    "p_bf_std",
+    "p_hr_per_bf_std",
+    "p_k_per_bf_std",
+    "p_bb_per_bf_std",
+    "park_hr_factor",
+    "platoon_adv"
+  ],
+  "scale_pos_weight": 8.745870067619618,
+  "metrics": {
+    "model_isotonic": {
+      "log_loss": 0.3261387265763718,
+      "brier": 0.09157246323877383,
+      "auc": 0.6281031881838877
+    },
+    "model_sigmoid": {
+      "log_loss": 0.32458066314450873,
+      "brier": 0.09149501368493894,
+      "auc": 0.6285627310966876
+    },
+    "baseline_naive_seasonrate": {
+      "log_loss": 0.43336037002206507,
+      "brier": 0.0954788424205958,
+      "auc": 0.6038374093947007
+    },
+    "baseline_constant": {
+      "log_loss": 0.3341426598481189,
+      "brier": 0.09331353873645079,
+      "auc": 0.5
+    },
+    "heuristic_current": {
+      "auc": 0.6102856764562901
+    }
+  },
+  "beats_naive_baseline": true,
+  "beats_current_heuristic": true,
+  "reliability_model": [
+    {
+      "bin": "0.00-0.10",
+      "n": 25533,
+      "pred_mean": 0.0711,
+      "obs_rate": 0.0679
+    },
+    {
+      "bin": "0.10-0.20",
+      "n": 27652,
+      "pred_mean": 0.1354,
+      "obs_rate": 0.1326
+    },
+    {
+      "bin": "0.20-0.30",
+      "n": 1279,
+      "pred_mean": 0.2185,
+      "obs_rate": 0.2127
+    }
+  ],
+  "feature_importance": {
+    "b_pa_std": 0.044390592724084854,
+    "b_hr_per_pa_std": 0.11317391693592072,
+    "b_k_rate_std": 0.03326341509819031,
+    "b_bb_rate_std": 0.034384410828351974,
+    "b_iso_std": 0.06527401506900787,
+    "b_barrel_rate_40": 0.2353828251361847,
+    "b_hardhit_rate_40": 0.05685872584581375,
+    "b_mean_ev_40": 0.050414759665727615,
+    "b_mean_la_40": 0.044619154185056686,
+    "b_xwoba_con_40": 0.03490658476948738,
+    "b_recent_hr_15": 0.07203803956508636,
+    "p_bf_std": 0.03602609038352966,
+    "p_hr_per_bf_std": 0.03867584094405174,
+    "p_k_per_bf_std": 0.037929438054561615,
+    "p_bb_per_bf_std": 0.03380444273352623,
+    "park_hr_factor": 0.04322117567062378,
+    "platoon_adv": 0.025636572390794754
+  }
+}

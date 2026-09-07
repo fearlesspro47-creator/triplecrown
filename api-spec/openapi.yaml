@@ -1,0 +1,1677 @@
+openapi: 3.1.0
+info:
+  title: Api
+  version: 0.1.0
+  description: Triple Crown AI - Baseball analytics and prediction API
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+    description: Health operations
+  - name: players
+    description: Player stats and profiles
+  - name: games
+    description: Games and schedules
+  - name: predictions
+    description: AI-powered predictions
+  - name: weather
+    description: Weather data for stadiums
+  - name: pitchers
+    description: Probable starting pitchers
+  - name: odds
+    description: Odds comparison
+  - name: lineups
+    description: Lineup optimization
+  - name: dashboard
+    description: Dashboard summaries
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+
+  /players:
+    get:
+      operationId: listPlayers
+      tags: [players]
+      summary: List all players
+      parameters:
+        - name: position
+          in: query
+          schema:
+            type: string
+        - name: team
+          in: query
+          schema:
+            type: string
+        - name: search
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of players
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Player"
+    post:
+      operationId: createPlayer
+      tags: [players]
+      summary: Create a player
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PlayerInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Player"
+
+  /players/{id}:
+    get:
+      operationId: getPlayer
+      tags: [players]
+      summary: Get player by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Player details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Player"
+        "404":
+          description: Not found
+
+  /players/top-picks:
+    get:
+      operationId: getTopPicks
+      tags: [players]
+      summary: Get today's top picks for HR probability
+      responses:
+        "200":
+          description: Top picks list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TopPick"
+
+  /players/top-hits:
+    get:
+      operationId: getTopHits
+      tags: [players]
+      summary: Get today's 10 hitters most likely to record a hit
+      responses:
+        "200":
+          description: Top hit-probability players (max 10)
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TopHit"
+
+  /players/top-steals:
+    get:
+      operationId: getTopSteals
+      tags: [players]
+      summary: Get today's 5 players most likely to steal a base
+      responses:
+        "200":
+          description: Top base-stealing threats on today's slate (max 5), ranked by a real-data steal score
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TopSteal"
+
+  /parlays/cooking-up:
+    get:
+      operationId: getCookingUpParlays
+      tags: [parlays]
+      summary: Today's elite danger batters (HRs in last 10) as priced parlay legs
+      responses:
+        "200":
+          description: Ranked HR parlay legs for today's slate, priced off the model HR probability
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ParlayLeg"
+
+  /parlays/heat-checks:
+    get:
+      operationId: getHeatCheckParlays
+      tags: [parlays]
+      summary: Hitters who homered on the most recent slate as priced parlay legs
+      responses:
+        "200":
+          description: HR-yesterday parlay legs priced off each hitter's season HR rate
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ParlayLeg"
+
+  /players/near-misses:
+    get:
+      operationId: getNearMisses
+      tags: [players]
+      summary: Yesterday's hardest-hit balls that stayed in the park (HR near misses)
+      responses:
+        "200":
+          description: Barrels / 100+ mph balls in the HR launch window that were not home runs, ranked by exit velocity
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/NearMiss"
+
+  /players/{id}/statcast:
+    get:
+      operationId: getPlayerStatcast
+      tags: [players]
+      summary: Get Statcast data for a player
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Statcast metrics
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatcastData"
+
+  /players/{id}/pitch-mix:
+    get:
+      operationId: getPlayerPitchMix
+      tags: [players]
+      summary: Get a batter's performance split by pitch family (real Statcast)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Per pitch-family batting split, ordered by usage
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PitchMixRow"
+
+  /players/{id}/matchup-pitch-mix/{pitcherMlbId}:
+    get:
+      operationId: getPlayerMatchupPitchMix
+      tags: [players]
+      summary: >
+        Get the opposing starter's pitch arsenal (ordered by how often the
+        pitcher throws each pitch) crossed with this batter's real performance
+        vs each pitch family. Batter stat columns are null when the hitter has
+        no tracked results vs that family (real-or-nothing, never fabricated).
+        Uses the current season.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: pitcherMlbId
+          in: path
+          required: true
+          description: MLB id of the opposing probable starter.
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: The pitcher's pitches ordered by usage (most-used first), each with the batter's split.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/MatchupPitchMixRow"
+
+  /games:
+    get:
+      operationId: listGames
+      tags: [games]
+      summary: List games for a date
+      parameters:
+        - name: date
+          in: query
+          schema:
+            type: string
+            description: ISO date string (YYYY-MM-DD), defaults to today
+      responses:
+        "200":
+          description: List of games
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Game"
+
+  /games/{id}:
+    get:
+      operationId: getGame
+      tags: [games]
+      summary: Get game details including lineups
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Game details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GameDetail"
+
+  /predictions:
+    get:
+      operationId: listPredictions
+      tags: [predictions]
+      summary: List predictions
+      parameters:
+        - name: date
+          in: query
+          schema:
+            type: string
+        - name: playerId
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of predictions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Prediction"
+
+  /predictions/simulate:
+    post:
+      operationId: runSimulation
+      tags: [predictions]
+      summary: Run Monte Carlo simulation for a player/game
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SimulationInput"
+      responses:
+        "200":
+          description: Simulation results
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SimulationResult"
+
+  /weather:
+    get:
+      operationId: listWeather
+      tags: [weather]
+      summary: Get weather for today's games
+      responses:
+        "200":
+          description: Weather data for stadiums
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/StadiumWeather"
+
+  /weather/{gameId}:
+    get:
+      operationId: getGameWeather
+      tags: [weather]
+      summary: Get weather for a specific game
+      parameters:
+        - name: gameId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Weather data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StadiumWeather"
+
+  /news:
+    get:
+      operationId: getNews
+      tags: [news]
+      summary: Live real-data news ticker feed (injuries, weather, model picks, trends, games)
+      parameters:
+        - name: date
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Ordered news ticker items for the date
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/NewsItem"
+
+  /pitchers:
+    get:
+      operationId: listPitchers
+      tags: [pitchers]
+      summary: Get today's probable starting pitchers with season stats
+      parameters:
+        - name: date
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Probable starting pitchers for the date, ranked by strikeouts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Pitcher"
+
+  /odds:
+    get:
+      operationId: listOdds
+      tags: [odds]
+      summary: List odds for today's games
+      parameters:
+        - name: date
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Odds list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/GameOdds"
+
+  /lineups/optimize:
+    get:
+      operationId: getLineupOptimizer
+      tags: [lineups]
+      summary: Get optimized DFS lineup picks for today
+      parameters:
+        - name: gameId
+          in: query
+          schema:
+            type: integer
+        - name: contestType
+          in: query
+          schema:
+            type: string
+            enum: [classic, showdown, hr-derby]
+      responses:
+        "200":
+          description: Optimized picks
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LineupOptimizeResult"
+
+  /dashboard/summary:
+    get:
+      operationId: getDashboardSummary
+      tags: [dashboard]
+      summary: Get dashboard summary stats
+      responses:
+        "200":
+          description: Dashboard summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardSummary"
+
+  /dashboard/leaderboard:
+    get:
+      operationId: getLeaderboard
+      tags: [dashboard]
+      summary: Get HR leaderboard stats
+      responses:
+        "200":
+          description: Leaderboard
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/LeaderboardEntry"
+
+  /membership/status:
+    get:
+      operationId: getMembershipStatus
+      tags: [membership]
+      summary: Whether the signed-in user has an active membership
+      responses:
+        "200":
+          description: Membership status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MembershipStatus"
+
+  /membership/plan:
+    get:
+      operationId: getMembershipPlan
+      tags: [membership]
+      summary: The membership price/plan details (read live from Stripe)
+      responses:
+        "200":
+          description: Membership plan
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MembershipPlan"
+
+  /membership/checkout:
+    post:
+      operationId: createMembershipCheckout
+      tags: [membership]
+      summary: Create a Stripe Checkout session for the membership
+      responses:
+        "200":
+          description: Checkout session URL
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CheckoutUrl"
+
+  /membership/checkout-confirm:
+    post:
+      operationId: confirmMembershipCheckout
+      tags: [membership]
+      summary: Confirm a completed Checkout session and unlock immediately
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CheckoutConfirmInput"
+      responses:
+        "200":
+          description: Resulting membership status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MembershipStatus"
+
+  /membership/portal:
+    post:
+      operationId: createMembershipPortal
+      tags: [membership]
+      summary: Create a Stripe billing-portal session to manage the membership
+      responses:
+        "200":
+          description: Billing portal URL
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CheckoutUrl"
+
+components:
+  schemas:
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+      required:
+        - status
+
+    MembershipStatus:
+      type: object
+      required: [isMember]
+      properties:
+        isMember:
+          type: boolean
+        status:
+          type: ["string", "null"]
+
+    MembershipPlan:
+      type: object
+      required: [priceId, unitAmount, currency, interval, productName]
+      properties:
+        priceId:
+          type: string
+        unitAmount:
+          type: integer
+        currency:
+          type: string
+        interval:
+          type: string
+        productName:
+          type: string
+
+    CheckoutUrl:
+      type: object
+      required: [url]
+      properties:
+        url:
+          type: ["string", "null"]
+
+    CheckoutConfirmInput:
+      type: object
+      required: [sessionId]
+      properties:
+        sessionId:
+          type: string
+
+    NewsItem:
+      type: object
+      required: [category, text, tone]
+      properties:
+        category:
+          type: string
+        text:
+          type: string
+        tone:
+          type: string
+          enum: [alert, positive, info, neutral]
+
+    Player:
+      type: object
+      required: [id, name, team, position]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        team:
+          type: string
+        teamAbbr:
+          type: string
+        position:
+          type: string
+        jerseyNumber:
+          type: ["string", "null"]
+        avatarUrl:
+          type: ["string", "null"]
+        battingAvg:
+          type: ["number", "null"]
+        homeRuns:
+          type: ["integer", "null"]
+        rbi:
+          type: ["integer", "null"]
+        ops:
+          type: ["number", "null"]
+        slg:
+          type: ["number", "null"]
+        obp:
+          type: ["number", "null"]
+        strikeoutRate:
+          type: ["number", "null"]
+        walkRate:
+          type: ["number", "null"]
+        hrRate:
+          type: ["number", "null"]
+        iso:
+          type: ["number", "null"]
+        babip:
+          type: ["number", "null"]
+        wrcPlus:
+          type: ["integer", "null"]
+        handedness:
+          type: ["string", "null"]
+        isActive:
+          type: boolean
+
+    PlayerInput:
+      type: object
+      required: [name, team, position]
+      properties:
+        name:
+          type: string
+        team:
+          type: string
+        teamAbbr:
+          type: string
+        position:
+          type: string
+        jerseyNumber:
+          type: string
+        battingAvg:
+          type: number
+        homeRuns:
+          type: integer
+        rbi:
+          type: integer
+        ops:
+          type: number
+        handedness:
+          type: string
+
+    TopPick:
+      type: object
+      required: [playerId, playerName, team, hrProbability, rank, modelSource, smallSample]
+      properties:
+        playerId:
+          type: integer
+        playerName:
+          type: string
+        team:
+          type: string
+        avatarUrl:
+          type: ["string", "null"]
+        position:
+          type: string
+        hrProbability:
+          type: number
+        rank:
+          type: integer
+        trend:
+          type: string
+          enum: [up, down, flat]
+        opponent:
+          type: ["string", "null"]
+        venue:
+          type: ["string", "null"]
+        gameTime:
+          type: ["string", "null"]
+        gameId:
+          type: ["integer", "null"]
+        gameStatus:
+          type: ["string", "null"]
+        confidence:
+          type: string
+          enum: [high, medium, low]
+        recentHrs:
+          type: integer
+        gamesPlayed:
+          type: ["integer", "null"]
+          description: Season games played — the sample-size signal used to weight the ranking.
+        smallSample:
+          type: boolean
+          description: >-
+            True when the hitter has played too few games this season for their composite score to be
+            fully trusted; such hitters are weighted down in the ranking so noisy small-sample rate
+            spikes can't top the board.
+        hrScore:
+          type: ["number", "null"]
+        confidenceGrade:
+          type: ["string", "null"]
+          description: ML confidence grade (A+..D) when the ML scorer produced this pick, else null.
+        locked:
+          type: boolean
+          description: >-
+            True when this row's premium analytics (hrScore, hrScoreComponents, confidenceGrade,
+            insight) were withheld because the viewer is not an active member.
+        hrScoreComponents:
+          type: ["array", "null"]
+          items:
+            $ref: "#/components/schemas/HrScoreComponent"
+          description: Crown Score component breakdown from the ML model, else null.
+        modelSource:
+          type: string
+          enum: [ml, heuristic]
+          description: Which model produced hrProbability / hrScore.
+        insight:
+          oneOf:
+            - $ref: "#/components/schemas/MatchupInsight"
+            - type: "null"
+          description: Natural-language "why the model likes this matchup" blurb, or null when no real angle exists.
+
+    MatchupInsight:
+      type: object
+      required: [text, highlights]
+      description: >-
+        A short natural-language explanation of why the matchup favors this hitter, built
+        entirely from real data (pitcher pitch-usage arsenal vs hitter SLG-by-pitch, ballpark
+        weather, batter-vs-pitcher history, and the ML model's top SHAP reason). Real-or-nothing:
+        the whole object is null when no favorable, real angle exists.
+      properties:
+        text:
+          type: string
+          description: The composed insight sentence(s).
+        highlights:
+          type: array
+          items:
+            $ref: "#/components/schemas/MatchupInsightHighlight"
+          description: Structured supporting chips (label/value) backing the narrative.
+
+    MatchupInsightHighlight:
+      type: object
+      required: [label, value]
+      properties:
+        label:
+          type: string
+        value:
+          type: string
+
+    TopHit:
+      type: object
+      required: [playerId, playerName, team, hitProbability, rank]
+      properties:
+        playerId:
+          type: integer
+        playerName:
+          type: string
+        team:
+          type: string
+        avatarUrl:
+          type: ["string", "null"]
+        position:
+          type: string
+        hitProbability:
+          type: number
+          description: Model hit probability for today, a decimal 0-1 (UI multiplies by 100).
+        battingAvg:
+          type: ["number", "null"]
+        opponent:
+          type: ["string", "null"]
+        venue:
+          type: ["string", "null"]
+        gameTime:
+          type: ["string", "null"]
+        gameId:
+          type: ["integer", "null"]
+        gameStatus:
+          type: ["string", "null"]
+        rank:
+          type: integer
+
+    ParlayLeg:
+      type: object
+      required: [playerId, playerName, teamAbbr, detail, hrProbability, americanOdds]
+      properties:
+        playerId:
+          type: integer
+        playerName:
+          type: string
+        teamAbbr:
+          type: string
+        avatarUrl:
+          type: ["string", "null"]
+        opponentAbbr:
+          type: ["string", "null"]
+        pitcher:
+          type: ["string", "null"]
+          description: Opposing probable starter (today's slate); null for Heat Checks.
+        detail:
+          type: string
+          description: Leg descriptor, e.g. "HR yesterday" or "6 HR in last 10".
+        hrProbability:
+          type: number
+          description: Model HR probability for the leg, a decimal 0-1.
+        americanOdds:
+          type: integer
+          description: Fair model American odds for the leg (no sportsbook margin).
+
+    TopSteal:
+      type: object
+      required: [playerId, playerName, team, stolenBases, stealScore, rank]
+      properties:
+        playerId:
+          type: integer
+        playerName:
+          type: string
+        team:
+          type: string
+        teamAbbr:
+          type: ["string", "null"]
+        position:
+          type: ["string", "null"]
+        avatarUrl:
+          type: ["string", "null"]
+        stolenBases:
+          type: integer
+          description: Real season stolen bases.
+        caughtStealing:
+          type: ["integer", "null"]
+          description: Real season times caught stealing.
+        gamesPlayed:
+          type: ["integer", "null"]
+        sbPerGame:
+          type: ["number", "null"]
+          description: Season stolen bases per game (real); null when games-played is unknown.
+        successRate:
+          type: ["number", "null"]
+          description: SB / (SB + CS), a decimal 0-1 when there's a sample (UI multiplies by 100).
+        sprintSpeed:
+          type: ["number", "null"]
+          description: Real Statcast sprint speed in ft/s (null when no Statcast row).
+        stealScore:
+          type: number
+          description: Composite 0-100 steal-likelihood score from real SB rate, sprint speed, and success rate.
+        opponent:
+          type: ["string", "null"]
+        venue:
+          type: ["string", "null"]
+        gameTime:
+          type: ["string", "null"]
+        gameId:
+          type: ["integer", "null"]
+        gameStatus:
+          type: ["string", "null"]
+        rank:
+          type: integer
+
+    NearMiss:
+      type: object
+      required: [playerId, playerName, team, exitVelocity, launchAngle, category, isBarrel, count, onTodaysCard, gameDate]
+      properties:
+        playerId:
+          type: integer
+        playerName:
+          type: string
+        team:
+          type: string
+        teamAbbr:
+          type: ["string", "null"]
+        position:
+          type: ["string", "null"]
+        avatarUrl:
+          type: ["string", "null"]
+        exitVelocity:
+          type: number
+          description: Exit velocity in mph (100+).
+        launchAngle:
+          type: number
+          description: Launch angle in degrees (HR launch window).
+        distance:
+          type: ["integer", "null"]
+          description: Estimated batted-ball distance in feet, when available.
+        eventLabel:
+          type: ["string", "null"]
+          description: Human badge label for how the ball ended (e.g. "Warning-track flyout").
+        eventType:
+          type: ["string", "null"]
+        category:
+          type: string
+          description: Bucket key (extra_base_barrel, warning_track_flyout, hard_single, loud_out, reached_error, barrel, hard_hit).
+        isBarrel:
+          type: boolean
+        count:
+          type: integer
+          description: How many near-misses this player had that day.
+        opponentAbbr:
+          type: ["string", "null"]
+        onTodaysCard:
+          type: boolean
+          description: True when the player is on today's slate (has a prediction for today).
+        gameDate:
+          type: string
+          description: The slate date these near-misses are from (YYYY-MM-DD).
+
+    StatcastData:
+      type: object
+      required: [playerId]
+      properties:
+        playerId:
+          type: integer
+        exitVelocityAvg:
+          type: ["number", "null"]
+        launchAngleAvg:
+          type: ["number", "null"]
+        hardHitRate:
+          type: ["number", "null"]
+        barrelRate:
+          type: ["number", "null"]
+        xba:
+          type: ["number", "null"]
+        xslg:
+          type: ["number", "null"]
+        xwoba:
+          type: ["number", "null"]
+        woba:
+          type: ["number", "null"]
+        xiso:
+          type: ["number", "null"]
+        sprintSpeed:
+          type: ["number", "null"]
+        pullRate:
+          type: ["number", "null"]
+        centerRate:
+          type: ["number", "null"]
+        oppositeRate:
+          type: ["number", "null"]
+
+    Game:
+      type: object
+      required: [id, homeTeam, awayTeam, gameTime, status]
+      properties:
+        id:
+          type: integer
+        homeTeam:
+          type: string
+        homeTeamAbbr:
+          type: string
+        awayTeam:
+          type: string
+        awayTeamAbbr:
+          type: string
+        gameTime:
+          type: string
+        status:
+          type: string
+          enum: [scheduled, live, final, postponed]
+        venue:
+          type: string
+        homeScore:
+          type: ["integer", "null"]
+        awayScore:
+          type: ["integer", "null"]
+        inning:
+          type: ["integer", "null"]
+        homePitcher:
+          type: ["string", "null"]
+        awayPitcher:
+          type: ["string", "null"]
+        homePitcherHand:
+          type: ["string", "null"]
+        awayPitcherHand:
+          type: ["string", "null"]
+        homePitcherMlbId:
+          type: ["integer", "null"]
+        awayPitcherMlbId:
+          type: ["integer", "null"]
+        homePitcherHr9:
+          type: ["number", "null"]
+        awayPitcherHr9:
+          type: ["number", "null"]
+        mlbGamePk:
+          type: ["integer", "null"]
+        trackedPlayers:
+          type: array
+          items:
+            $ref: "#/components/schemas/TrackedPlayer"
+
+    GameDetail:
+      type: object
+      required: [id, homeTeam, awayTeam, gameTime, status]
+      properties:
+        id:
+          type: integer
+        homeTeam:
+          type: string
+        homeTeamAbbr:
+          type: string
+        awayTeam:
+          type: string
+        awayTeamAbbr:
+          type: string
+        gameTime:
+          type: string
+        status:
+          type: string
+        venue:
+          type: string
+        homeScore:
+          type: ["integer", "null"]
+        awayScore:
+          type: ["integer", "null"]
+        inning:
+          type: ["integer", "null"]
+        homePitcher:
+          type: ["string", "null"]
+        awayPitcher:
+          type: ["string", "null"]
+        homePitcherHand:
+          type: ["string", "null"]
+        awayPitcherHand:
+          type: ["string", "null"]
+        homeLineup:
+          type: array
+          items:
+            $ref: "#/components/schemas/LineupEntry"
+        awayLineup:
+          type: array
+          items:
+            $ref: "#/components/schemas/LineupEntry"
+
+    LineupEntry:
+      type: object
+      required: [battingOrder, playerName, position]
+      properties:
+        battingOrder:
+          type: integer
+        playerName:
+          type: string
+        position:
+          type: string
+        teamAbbr:
+          type: string
+        playerId:
+          type: ["integer", "null"]
+        hrProbability:
+          type: ["number", "null"]
+        hitProbability:
+          type: ["number", "null"]
+
+    SeasonBattingLine:
+      type: object
+      required: [atBats, hits, doubles, triples, homeRuns]
+      description: A hitter's overall current-season batting line (real MLB season totals).
+      properties:
+        gamesPlayed:
+          type: ["integer", "null"]
+        atBats:
+          type: integer
+        hits:
+          type: integer
+        doubles:
+          type: integer
+        triples:
+          type: integer
+        homeRuns:
+          type: integer
+        avg:
+          type: ["number", "null"]
+          description: Season batting average (0-1), null when unavailable.
+
+    TrackedPlayer:
+      type: object
+      required: [playerId, playerName, teamAbbr, position, side, hitProbability, hrProbability, modelSource]
+      properties:
+        playerId:
+          type: integer
+        playerName:
+          type: string
+        team:
+          type: string
+        teamAbbr:
+          type: string
+        avatarUrl:
+          type: ["string", "null"]
+        position:
+          type: string
+        side:
+          type: string
+          enum: [home, away]
+        hitProbability:
+          type: number
+        hrProbability:
+          type: number
+        handedness:
+          type: ["string", "null"]
+        seasonStats:
+          oneOf:
+            - $ref: "#/components/schemas/SeasonBattingLine"
+            - type: "null"
+          description: The hitter's overall current-season batting line (real MLB season totals), or null when unavailable.
+        hrScore:
+          type: ["number", "null"]
+        hrScoreComponents:
+          type: ["array", "null"]
+          items:
+            $ref: "#/components/schemas/HrScoreComponent"
+        confidenceGrade:
+          type: ["string", "null"]
+          description: ML confidence grade (A+..D) when the ML scorer produced this row, else null.
+        locked:
+          type: boolean
+          description: >-
+            True when this row's premium analytics (hrScore, hrScoreComponents, confidenceGrade,
+            insight) were withheld because the viewer is not an active member.
+        modelSource:
+          type: string
+          enum: [ml, heuristic]
+          description: Which model produced hrProbability / hrScore.
+        bvp:
+          oneOf:
+            - $ref: "#/components/schemas/BatterVsPitcher"
+            - type: "null"
+        insight:
+          oneOf:
+            - $ref: "#/components/schemas/MatchupInsight"
+            - type: "null"
+          description: Natural-language "why the model likes this matchup" blurb, or null when no real angle exists.
+
+    HrScoreComponent:
+      type: object
+      required: [key, label, weight, effectiveWeight, normalized, points, available]
+      properties:
+        key:
+          type: string
+        label:
+          type: string
+        weight:
+          type: number
+        effectiveWeight:
+          type: number
+        raw:
+          type: ["number", "null"]
+        normalized:
+          type: number
+        points:
+          type: number
+        available:
+          type: boolean
+
+    BatterVsPitcher:
+      type: object
+      required:
+        [
+          seasonAb,
+          seasonHr,
+          seasonHits,
+          seasonDoubles,
+          seasonTriples,
+          seasonStrikeouts,
+          careerAb,
+          careerHr,
+          careerHits,
+          careerDoubles,
+          careerTriples,
+          careerStrikeouts,
+        ]
+      properties:
+        pitcherName:
+          type: ["string", "null"]
+        seasonAb:
+          type: integer
+        seasonHr:
+          type: integer
+        seasonHits:
+          type: integer
+        seasonDoubles:
+          type: integer
+        seasonTriples:
+          type: integer
+        seasonStrikeouts:
+          type: integer
+        careerAb:
+          type: integer
+        careerHr:
+          type: integer
+        careerHits:
+          type: integer
+        careerDoubles:
+          type: integer
+        careerTriples:
+          type: integer
+        careerStrikeouts:
+          type: integer
+
+    PitchMixRow:
+      type: object
+      required:
+        [
+          playerId,
+          season,
+          pitchType,
+          pitchesSeen,
+          plateAppearances,
+          atBats,
+          hits,
+          singles,
+          doubles,
+          triples,
+          homeRuns,
+          strikeouts,
+          walks,
+        ]
+      properties:
+        playerId:
+          type: integer
+        season:
+          type: integer
+        pitchType:
+          type: string
+          description: Pitch-family code (FF, SI, FC, SL, CU, CH, FS, KN).
+        pitchName:
+          type: ["string", "null"]
+        pitchesSeen:
+          type: integer
+        plateAppearances:
+          type: integer
+        atBats:
+          type: integer
+        hits:
+          type: integer
+        singles:
+          type: integer
+        doubles:
+          type: integer
+        triples:
+          type: integer
+        homeRuns:
+          type: integer
+        strikeouts:
+          type: integer
+        walks:
+          type: integer
+        pitchUsage:
+          type: ["number", "null"]
+          description: Share of pitches seen (0-1 decimal).
+        avg:
+          type: ["number", "null"]
+        slg:
+          type: ["number", "null"]
+        iso:
+          type: ["number", "null"]
+        kRate:
+          type: ["number", "null"]
+          description: Strikeouts per plate appearance (0-1 decimal).
+        whiffRate:
+          type: ["number", "null"]
+          description: Whiffs per swing (0-1 decimal).
+        barrelRate:
+          type: ["number", "null"]
+          description: Barrels per batted ball with tracked exit velocity (0-1 decimal).
+        hardHitRate:
+          type: ["number", "null"]
+          description: Batted balls 95+ mph share (0-1 decimal).
+        avgExitVelocity:
+          type: ["number", "null"]
+
+    MatchupPitchMixRow:
+      type: object
+      description: >
+        One of the opposing starter's pitch families crossed with this batter's
+        real season split vs that family. Rows are ordered by pitcherUsage
+        (most-thrown first). Batter columns are null when the hitter has no
+        tracked at-bats vs the family.
+      required: [pitchType, pitcherUsage]
+      properties:
+        pitchType:
+          type: string
+          description: Pitch-family code (FF, SI, FC, SL, CU, CH, FS, KN).
+        pitchName:
+          type: ["string", "null"]
+        pitcherUsage:
+          type: number
+          description: Share of pitches the opposing starter throws of this family (0-1 decimal).
+        atBats:
+          type: ["integer", "null"]
+          description: Batter's at-bats vs this pitch family this season (null if none).
+        homeRuns:
+          type: ["integer", "null"]
+          description: Batter's home runs vs this pitch family this season.
+        avg:
+          type: ["number", "null"]
+        iso:
+          type: ["number", "null"]
+        kRate:
+          type: ["number", "null"]
+          description: Batter's strikeouts per plate appearance vs this family (0-1 decimal).
+        hardHitRate:
+          type: ["number", "null"]
+          description: Batter's hard-hit share vs this family (0-1 decimal).
+        avgExitVelocity:
+          type: ["number", "null"]
+
+    Prediction:
+      type: object
+      required: [id, playerId, playerName, predictionType, value, confidence]
+      properties:
+        id:
+          type: integer
+        playerId:
+          type: integer
+        playerName:
+          type: string
+        team:
+          type: string
+        gameId:
+          type: ["integer", "null"]
+        predictionType:
+          type: string
+          enum: [hit, hr, hr_score]
+        value:
+          type: number
+        confidence:
+          type: number
+        modelVersion:
+          type: string
+        date:
+          type: string
+        factors:
+          type: array
+          items:
+            type: string
+
+    SimulationInput:
+      type: object
+      required: [playerId, gameId, simulations]
+      properties:
+        playerId:
+          type: integer
+        gameId:
+          type: integer
+        simulations:
+          type: integer
+
+    SimulationResult:
+      type: object
+      required: [playerId, gameId, hrProbability, simulations]
+      properties:
+        playerId:
+          type: integer
+        gameId:
+          type: integer
+        hrProbability:
+          type: number
+        hitProbability:
+          type: number
+        simulations:
+          type: integer
+        percentileHrs:
+          type: object
+          properties:
+            p10: { type: number }
+            p25: { type: number }
+            p50: { type: number }
+            p75: { type: number }
+            p90: { type: number }
+        factors:
+          type: array
+          items:
+            type: string
+
+    Pitcher:
+      type: object
+      required: [mlbId, name, gameId, opponent, gameTime, gameStatus, home]
+      properties:
+        mlbId:
+          type: integer
+        name:
+          type: string
+        team:
+          type: ["string", "null"]
+        hand:
+          type: ["string", "null"]
+        games:
+          type: ["integer", "null"]
+        gamesStarted:
+          type: ["integer", "null"]
+        inningsPitched:
+          type: ["string", "null"]
+        strikeouts:
+          type: ["integer", "null"]
+        strikeoutsPerGame:
+          type: ["number", "null"]
+        era:
+          type: ["number", "null"]
+        whip:
+          type: ["number", "null"]
+        k9:
+          type: ["number", "null"]
+        hr9:
+          type: ["number", "null"]
+        wins:
+          type: ["integer", "null"]
+        losses:
+          type: ["integer", "null"]
+        avgAgainst:
+          type: ["number", "null"]
+        gameId:
+          type: integer
+        opponent:
+          type: string
+        gameTime:
+          type: string
+        gameStatus:
+          type: string
+        home:
+          type: boolean
+
+    StadiumWeather:
+      type: object
+      required: [gameId, stadium, temperature, windSpeed, windDirection, condition]
+      properties:
+        gameId:
+          type: integer
+        stadium:
+          type: string
+        city:
+          type: string
+        temperature:
+          type: number
+        feelsLike:
+          type: ["number", "null"]
+        humidity:
+          type: ["number", "null"]
+        windSpeed:
+          type: number
+        windDirection:
+          type: string
+        windDeg:
+          type: ["number", "null"]
+        condition:
+          type: string
+        conditionIcon:
+          type: ["string", "null"]
+        hrBoostFactor:
+          type: number
+        rainProbability:
+          type: ["number", "null"]
+
+    GameOdds:
+      type: object
+      required: [gameId, homeTeam, awayTeam]
+      properties:
+        gameId:
+          type: integer
+        homeTeam:
+          type: string
+        awayTeam:
+          type: string
+        gameTime:
+          type: string
+        bookmakers:
+          type: array
+          items:
+            $ref: "#/components/schemas/BookmakerOdds"
+        consensusHomeML:
+          type: ["number", "null"]
+        consensusAwayML:
+          type: ["number", "null"]
+        overUnder:
+          type: ["number", "null"]
+
+    BookmakerOdds:
+      type: object
+      required: [bookmaker, homeML, awayML]
+      properties:
+        bookmaker:
+          type: string
+        homeML:
+          type: number
+        awayML:
+          type: number
+        overUnder:
+          type: ["number", "null"]
+        spread:
+          type: ["number", "null"]
+
+    DashboardSummary:
+      type: object
+      required: [totalGamesToday, totalPlayersTracked, avgHrProbability, topHrContender]
+      properties:
+        totalGamesToday:
+          type: integer
+        totalPlayersTracked:
+          type: integer
+        avgHrProbability:
+          type: number
+        topHrContender:
+          type: string
+        topHrProbability:
+          type: number
+        gamesLive:
+          type: integer
+        predictionsGenerated:
+          type: integer
+        modelAccuracy:
+          type: number
+
+    LineupOptimizeResult:
+      type: object
+      required: [contestType, date, picks, totalSalaryUsed, projectedScore]
+      properties:
+        contestType:
+          type: string
+        date:
+          type: string
+        picks:
+          type: array
+          items:
+            $ref: "#/components/schemas/OptimizedPick"
+        totalSalaryUsed:
+          type: integer
+        projectedScore:
+          type: number
+        salaryCap:
+          type: integer
+
+    OptimizedPick:
+      type: object
+      required: [playerId, playerName, team, teamAbbr, position, opponent, pitcherHandedness, gameTime, salary, hrProbability, hitProbability, hitRate7, hitRate14, hitRate30, hits7, hits14, hits30, hitRateSource, form, matchupScore, weatherImpact, parkFactor, valueScore, compositeScore, recommendation, factors, rank, projectedPoints, handedness, homeRuns, battingAvg, ops]
+      properties:
+        playerId:
+          type: integer
+        playerName:
+          type: string
+        team:
+          type: string
+        teamAbbr:
+          type: string
+        position:
+          type: string
+        opponent:
+          type: ["string", "null"]
+        pitcherHandedness:
+          type: ["string", "null"]
+        gameTime:
+          type: ["string", "null"]
+        salary:
+          type: integer
+        hrProbability:
+          type: number
+        hitProbability:
+          type: number
+        hitRate7:
+          type: number
+        hitRate14:
+          type: number
+        hitRate30:
+          type: number
+        hits7:
+          type: integer
+        hits14:
+          type: integer
+        hits30:
+          type: integer
+        hitRateSource:
+          type: string
+          enum: [live, model]
+        form:
+          type: string
+          enum: [hot, cold, steady]
+        matchupScore:
+          type: number
+        weatherImpact:
+          type: number
+        parkFactor:
+          type: number
+        valueScore:
+          type: number
+        compositeScore:
+          type: number
+        recommendation:
+          type: string
+          enum: [must-play, consider, avoid]
+        factors:
+          type: array
+          items:
+            type: string
+        rank:
+          type: integer
+        projectedPoints:
+          type: number
+        handedness:
+          type: ["string", "null"]
+        homeRuns:
+          type: ["integer", "null"]
+        battingAvg:
+          type: ["number", "null"]
+        ops:
+          type: ["number", "null"]
+        exitVelocityAvg:
+          type: ["number", "null"]
+        barrelRate:
+          type: ["number", "null"]
+
+    LeaderboardEntry:
+      type: object
+      required: [rank, playerId, playerName, team, homeRuns, hrProbabilityToday]
+      properties:
+        rank:
+          type: integer
+        playerId:
+          type: integer
+        playerName:
+          type: string
+        team:
+          type: string
+        homeRuns:
+          type: integer
+        battingAvg:
+          type: number
+        rbi:
+          type: integer
+        hrProbabilityToday:
+          type: number
+        trend:
+          type: string
+          enum: [up, down, flat]

@@ -1,0 +1,22 @@
+{
+  "features": [
+    "b_pa_std",
+    "b_hr_per_pa_std",
+    "b_k_rate_std",
+    "b_bb_rate_std",
+    "b_iso_std",
+    "b_barrel_rate_40",
+    "b_hardhit_rate_40",
+    "b_mean_ev_40",
+    "b_mean_la_40",
+    "b_xwoba_con_40",
+    "b_recent_hr_15",
+    "p_bf_std",
+    "p_hr_per_bf_std",
+    "p_k_per_bf_std",
+    "p_bb_per_bf_std",
+    "park_hr_factor",
+    "platoon_adv"
+  ],
+  "expected_pa": 4.0
+}
