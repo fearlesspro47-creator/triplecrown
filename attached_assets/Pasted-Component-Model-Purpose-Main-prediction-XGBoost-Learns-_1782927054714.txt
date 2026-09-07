@@ -1,0 +1,109 @@
+Component	Model	Purpose
+⭐ Main prediction	XGBoost	Learns complex relationships and is excellent with structured baseball data.
+Probability calibration	Calibrated Logistic Regression	Converts raw scores into realistic home run probabilities.
+Simulation	Monte Carlo (10,000–50,000 simulations per player)	Estimates expected outcomes and confidence.
+Explainability	SHAP values	Explains why a player is rated highly (e.g., weather, barrel rate, pitcher weakness).
+Features I'd include (80–120 variables)
+Batter
+Barrel %
+Hard Hit %
+Average Exit Velocity
+Max Exit Velocity
+Bat Speed
+Sweet Spot %
+Launch Angle
+Fly Ball %
+Pull %
+xSLG
+xwOBA
+ISO
+Home/Away splits
+Left/Right splits
+Last 7/15/30 games
+Rolling barrel rate
+Rolling hard-hit rate
+Pitcher
+HR/9
+Barrel % allowed
+Hard Hit % allowed
+Fly Ball %
+Ground Ball %
+Average exit velocity allowed
+xERA
+Pitch mix
+Pitch velocity
+Whiff %
+Left/Right splits
+Times through the order
+Matchup
+Batter vs pitch type
+Batter vs pitcher handedness
+Historical batter vs pitcher (low weight)
+Chase rate matchup
+Contact quality matchup
+Environment
+Ballpark HR factor
+Temperature
+Humidity
+Air density
+Wind speed
+Wind direction
+Roof open/closed
+Elevation
+Game Context
+Lineup position
+Expected plate appearances
+Bullpen quality
+Team implied runs
+Opposing bullpen handedness
+Rest days
+Betting Market
+Home run odds
+Implied probability
+Line movement
+Closing line value
+Model edge
+Output
+Instead of a single score, show something like:
+Aaron Judge
+
+Home Run Probability
+31.4%
+
+👑 Crown Score
+97.6
+
+Confidence
+A+
+
+Value Edge
++6.8%
+
+Reasons
+
++ Elite Barrel Rate
++ Favorable Pitch Mix
++ Wind Out to Left
++ Top-10 HR Park
++ Weak HR Pitcher
+Train on multiple seasons
+Use at least 2021–present Statcast data to capture current hitting trends while giving the model enough examples of home runs.
+What makes your model different
+I would create a proprietary Crown Score (0–100) that's more than just home run probability.
+Example:
+Crown Score
+
+40% Home Run Probability
+20% Contact Quality
+15% Matchup Advantage
+10% Weather
+10% Ballpark
+5% Recent Form
+Users would see:
+👑 Crown Score: 96.8
+⚾ HR Probability: 31.4%
+💎 Value Edge: +7.2%
+🔥 Confidence: A+
+This gives them a clear ranking, an actual probability, and an indication of whether the sportsbook odds offer value.
+Future enhancement
+Once the model is working, you can retrain it every morning after games finish by ingesting the latest Statcast data. That allows the model to adapt over the course of the season as player performance, pitch mixes, and environmental factors change, keeping predictions current instead of relying on fixed historical relationships.

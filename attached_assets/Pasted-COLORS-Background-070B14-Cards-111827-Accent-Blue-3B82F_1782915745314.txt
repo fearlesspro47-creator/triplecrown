@@ -1,0 +1,345 @@
+COLORS
+Background
+#070B14
+Cards
+#111827
+Accent Blue
+#3B82F6
+Accent Purple
+#7C3AED
+Gold
+#FFD54A
+Green
+#22C55E
+Red
+#EF4444
+Use glassmorphism.
+Rounded corners.
+Soft shadows.
+Very clean spacing.
+Premium animations.
+TYPOGRAPHY
+Headings
+Space Grotesk
+Body
+Inter
+Numbers
+JetBrains Mono
+NAVIGATION
+Desktop
+Dashboard
+
+Today's Games
+
+AI Picks
+
+Players
+
+Pitchers
+
+Weather
+
+Ballparks
+
+Analytics
+
+Settings
+Mobile
+Bottom navigation
+🏠
+
+⚾
+
+🔥
+
+📊
+
+⚙️
+HERO
+Large header
+TRIPLE CROWN BETS AI
+Subtitle
+AI Powered Home Run Analytics
+Show today's best home run pick.
+Large glowing baseball.
+Example
+Aaron Judge
+
+31.8%
+
+HOME RUN PROBABILITY
+
+★★★★★ Elite Matchup
+Button
+View Analysis
+DASHBOARD
+Create modern cards.
+Cards should animate.
+Show
+Today's Games
+Top HR Picks
+Value Picks
+Weather
+AI Confidence
+Trending Players
+Latest News
+TOP HOME RUN PICKS
+Each card should have
+Player image
+Player name
+Team
+Opponent
+Probability ring
+HR Probability
+Crown Score
+Confidence
+Recent Trend
+Weather Boost
+Ballpark Boost
+Pitch Matchup
+Hover animation
+Example
+Aaron Judge
+
+31%
+
+👑 Crown Score
+
+97.2
+
+Confidence
+
+★★★★★
+
+Wind
+
++8%
+
+Park
+
++5%
+
+Pitch Matchup
+
+Elite
+CROWN SCORE
+Create a proprietary metric.
+Display
+👑
+
+97.2
+
+Elite
+Animated.
+Gold glow.
+AI REASONING
+Every player gets explanation.
+Why is he here?
+
+✔ Elite Barrel Rate
+
+✔ Excellent Pitch Matchup
+
+✔ Wind Helping
+
+✔ Hot Streak
+
+✔ Great Ballpark
+
+Overall Confidence
+
+94%
+TODAY'S GAMES
+Beautiful matchup cards.
+Yankees
+
+vs
+
+Red Sox
+
+7:10 PM
+
+Cole vs Bello
+
+Wind
+
+11 MPH →
+
+Temperature
+
+84°
+
+HR Boost
+
++8%
+WEATHER
+Modern weather widgets.
+Wind
+Temperature
+Humidity
+Roof
+HR Boost
+Weather icon
+BALLPARK RANKINGS
+Card list
+Yankee Stadium
+
++12%
+
+Great American
+
++10%
+
+Citizens Bank
+
++9%
+LIVE TREND
+Small animated graph beside every player.
+▁▂▃▄▅▇█
+
+Trending Up
+HOTTEST PLAYERS
+Horizontal carousel.
+Large cards.
+Player photo.
+Probability.
+VALUE PICKS
+Large featured card.
+💎 VALUE PICK
+
+Brent Rooker
+
+Model
+
+28%
+
+Sportsbook
+
+19%
+
+EDGE
+
++9%
+Green glow.
+FADE PICKS
+Red card.
+🚫 Fade
+
+Cold hitter
+
+Strong pitcher
+
+Wind In
+
+Only
+
+8%
+PLAYER PAGE
+Beautiful profile.
+Hero banner.
+Large player photo.
+Statistics
+Home Run Probability
+Barrel%
+Hard Hit%
+Exit Velocity
+xSLG
+ISO
+Expected HR
+Recent Games
+Pitch Mix Matchup
+Weather
+Charts
+Heat Map
+Spray Chart placeholder
+AI Summary
+AI ANALYSIS PANEL
+Looks like ChatGPT.
+Today's Analysis
+
+Aaron Judge projects as today's strongest power hitter.
+
+Reasons
+
+Elite Barrel Rate
+
+Excellent Fly Ball Matchup
+
+Wind Helping
+
+Warm Weather
+
+Great Stadium
+
+Confidence
+
+95%
+NEWS
+Ticker across top.
+Judge back in lineup
+
+Wind increased in Cincinnati
+
+Ohtani odds shortened
+
+Yankee Stadium roof open
+SEARCH
+Global search.
+Search players.
+Pitchers.
+Teams.
+ANIMATIONS
+Every card
+Fade in
+Hover lift
+Glow
+Count-up animations
+Progress circles animate
+Charts animate
+Smooth scrolling
+60 FPS
+MOBILE
+Looks like a native app.
+Cards stack vertically.
+Swipe carousels.
+Large touch targets.
+No horizontal scrolling.
+DESIGN STYLE
+Minimal.
+Premium.
+No clutter.
+Lots of whitespace.
+Glassmorphism.
+Dark mode.
+Professional sports analytics.
+Apple-quality polish.
+DATA
+Create placeholder JSON for now.
+Generate fake MLB games.
+Fake player stats.
+Fake probabilities.
+Prepare components so real APIs can be connected later.
+PROJECT STRUCTURE
+app/
+
+components/
+
+dashboard/
+
+players/
+
+games/
+
+weather/
+
+analytics/
+
+charts/
+
+ui/
+
+lib/
+
+types/
+
+services/
